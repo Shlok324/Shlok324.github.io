@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Rock! Paper! Scissor! SHOOT</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #121212;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: auto;
+        }
+
+        .Score {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .playground {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .result {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            font-size: 2em;
+            margin-bottom: 10px;
+            min-height: 80px;
+        }
+
+        .hand {
+            font-size: 2.5em;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        .user-hand {
+            transform: rotate(90deg);
+        }
+
+        .cpu-hand {
+            transform: rotate(-90deg);
+        }
+
+        .playOption {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: #292929;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .card:hover {
+            background: #444;
+        }
+
+        .emoji {
+            font-size: 2em;
+        }
+
+        #results {
+            font-size: 1.3em;
+        }
+
+        #finalResult {
+            margin-top: 20px;
+            font-size: 1.8em;
+            font-weight: bold;
+            animation: pop 1s ease-in-out infinite alternate;
+        }
+
+        #playAgainBtn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #ff7f50;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            display: none;
+        }
+
+        #playAgainBtn:hover {
+            background-color: #ff6347;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); color: #ffeb3b; }
+            100% { transform: scale(1.2); color: #00e676; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="Score">
+            <h2>User score: <span id="user">0</span></h2>
+            <h2>CPU score: <span id="CPU">0</span></h2>
+        </div>
+
+        <div class="playground">
+            <div class="result">
+                <div class="userselect"><span class="hand user-hand">🤚</span></div>
+                <div class="CPUselect"><span class="hand cpu-hand">🤚</span></div>
+            </div>
+
+            <h1 id="results">Best of 5, LET'S BEGIN!!</h1>
+
+            <div class="playOption">
+                <div class="card" data-choice="Rock">
+                    <div class="emoji">✊</div>
+                    <h4>Rock</h4>
+                </div>
+                <div class="card" data-choice="Paper">
+                    <div class="emoji">✋</div>
+                    <h4>Paper</h4>
+                </div>
+                <div class="card" data-choice="Scissor">
+                    <div class="emoji">✌️</div>
+                    <h4>Scissor</h4>
+                </div> 
+            </div>
+
+            <button id="playAgainBtn">Play Again</button>
+        </div>
+
+        <div id="finalResult"></div>
+    </div>
+
+    <script>
+        const emojis = {
+            'Rock': '✊',
+            'Paper': '✋',
+            'Scissor': '✌️'
+        };
+
+        const choices = ['Rock', 'Paper', 'Scissor'];
+
+        let userScore = 0;
+        let cpuScore = 0;
+        let roundsLeft = 5;
+
+        const userScoreSpan = document.getElementById('user');
+        const cpuScoreSpan = document.getElementById('CPU');
+        const userIconDiv = document.querySelector('.userselect');
+        const cpuIconDiv = document.querySelector('.CPUselect');
+        const resultText = document.getElementById('results');
+        const finalResult = document.getElementById('finalResult');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+
+        function getComputerChoice() {
+            const index = Math.floor(Math.random() * choices.length);
+            return choices[index];
+        }
+
+        function determineWinner(userChoice, cpuChoice) {
+            if (userChoice === cpuChoice) return 'tie';
+            if (
+                (userChoice === 'Rock' && cpuChoice === 'Scissor') ||
+                (userChoice === 'Scissor' && cpuChoice === 'Paper') ||
+                (userChoice === 'Paper' && cpuChoice === 'Rock')
+            ) return 'user';
+            else return 'cpu';
+        }
+
+        function updateScores(winner) {
+            if (winner === 'user') {
+                userScore++;
+                userScoreSpan.innerText = userScore;
+            } else if (winner === 'cpu') {
+                cpuScore++;
+                cpuScoreSpan.innerText = cpuScore;
+            }
+        }
+
+        function checkGameEnd() {
+            if (roundsLeft === 0) {
+                let finalMessage = '';
+                if (userScore > cpuScore) {
+                    finalMessage = '🎉 You Win the Game! 🏆';
+                } else if (cpuScore > userScore) {
+                    finalMessage = '😢 You Lose the Game! 🤖';
+                } else {
+                    finalMessage = "🤝 It's a Tie! 🟰";
+                }
+
+                resultText.innerText = '';
+                finalResult.innerText = finalMessage;
+                document.querySelectorAll('.playOption .card').forEach(card => card.style.pointerEvents = 'none');
+                playAgainBtn.style.display = 'inline-block';
+            }
+        }
+
+        function playRound(userChoice) {
+            if (roundsLeft === 0) return;
+
+            const cpuChoice = getComputerChoice();
+            userIconDiv.innerHTML = `<span class="hand user-hand">${emojis[userChoice]}</span>`;
+            cpuIconDiv.innerHTML = `<span class="hand cpu-hand">${emojis[cpuChoice]}</span>`;
+
+            const winner = determineWinner(userChoice, cpuChoice);
+            updateScores(winner);
+            roundsLeft--;
+            document.querySelector('.Score h2:last-child').innerText = `CPU score: ${cpuScore}`;
+
+            resultText.innerText = '';
+            checkGameEnd();
+        }
+
+        document.querySelectorAll('.playOption .card').forEach(card => {
+            card.addEventListener('click', () => {
+                const choice = card.querySelector('h4').innerText;
+                playRound(choice);
+            });
+        });
+
+        playAgainBtn.addEventListener('click', () => {
+            userScore = 0;
+            cpuScore = 0;
+            roundsLeft = 5;
+            userScoreSpan.innerText = userScore;
+            cpuScoreSpan.innerText = cpuScore;
+            resultText.innerText = "Let's begin!!";
+            finalResult.innerText = '';
+            userIconDiv.innerHTML = `<span class="hand user-hand">🤚</span>`;
+            cpuIconDiv.innerHTML = `<span class="hand cpu-hand">🤚</span>`;
+            document.querySelector('.Score h2:last-child').innerText = `CPU score: ${cpuScore}`;
+            document.querySelectorAll('.playOption .card').forEach(card => card.style.pointerEvents = 'auto');
+            playAgainBtn.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
